@@ -1,0 +1,252 @@
+[
+    {
+        "center_id": 702296,
+        "name": "UPHC Khurram Nagar 18 To 44",
+        "address": "Plot No. 13 A 13 B Khasra No.-361 Khurram Nagar Shankarpurwa Ward-I Lko.",
+        "state_name": "Uttar Pradesh",
+        "district_name": "Lucknow",
+        "block_name": "LUCKNOW URBAN",
+        "pincode": 226022,
+        "lat": 26,
+        "long": 80,
+        "from": "10:00:00",
+        "to": "16:00:00",
+        "fee_type": "Free",
+        "sessions": [
+            {
+                "session_id": "c555cb5d-05dd-4db8-a07c-d8fb5bcc5185",
+                "date": "24-05-2021",
+                "available_capacity": 1,
+                "min_age_limit": 18,
+                "vaccine": "COVISHIELD",
+                "slots": [
+                    "10:00AM-11:00AM",
+                    "11:00AM-12:00PM",
+                    "12:00PM-01:00PM",
+                    "01:00PM-04:00PM"
+                ],
+                "available_capacity_dose1": 0,
+                "available_capacity_dose2": 0
+            },
+            {
+                "session_id": "c2a55e53-378d-43cf-a722-d9b85643e0bf",
+                "date": "25-05-2021",
+                "available_capacity": 1,
+                "min_age_limit": 18,
+                "vaccine": "COVISHIELD",
+                "slots": [
+                    "10:00AM-11:00AM",
+                    "11:00AM-12:00PM",
+                    "12:00PM-01:00PM",
+                    "01:00PM-04:00PM"
+                ],
+                "available_capacity_dose1": 0,
+                "available_capacity_dose2": 0
+            },
+            {
+                "session_id": "05d64455-8101-4184-a4e1-44dc9de66d6d",
+                "date": "26-05-2021",
+                "available_capacity": 1,
+                "min_age_limit": 18,
+                "vaccine": "COVISHIELD",
+                "slots": [
+                    "10:00AM-11:00AM",
+                    "11:00AM-12:00PM",
+                    "12:00PM-01:00PM",
+                    "01:00PM-04:00PM"
+                ],
+                "available_capacity_dose1": 0,
+                "available_capacity_dose2": 0
+            },
+            {
+                "session_id": "0263b942-fa12-46b3-9a9f-f24aac76da71",
+                "date": "27-05-2021",
+                "available_capacity": 1,
+                "min_age_limit": 18,
+                "vaccine": "COVISHIELD",
+                "slots": [
+                    "10:00AM-11:00AM",
+                    "11:00AM-12:00PM",
+                    "12:00PM-01:00PM",
+                    "01:00PM-04:00PM"
+                ],
+                "available_capacity_dose1": 0,
+                "available_capacity_dose2": 0
+            },
+            {
+                "session_id": "d85e318a-154c-44cb-9b21-987422bd22ff",
+                "date": "28-05-2021",
+                "available_capacity": 1,
+                "min_age_limit": 18,
+                "vaccine": "COVISHIELD",
+                "slots": [
+                    "10:00AM-11:00AM",
+                    "11:00AM-12:00PM",
+                    "12:00PM-01:00PM",
+                    "01:00PM-04:00PM"
+                ],
+                "available_capacity_dose1": 0,
+                "available_capacity_dose2": 0
+            },
+            {
+                "session_id": "6328a205-6e32-46bb-93b4-d5f5cc319845",
+                "date": "29-05-2021",
+                "available_capacity": 1,
+                "min_age_limit": 18,
+                "vaccine": "COVISHIELD",
+                "slots": [
+                    "10:00AM-11:00AM",
+                    "11:00AM-12:00PM",
+                    "12:00PM-01:00PM",
+                    "01:00PM-04:00PM"
+                ],
+                "available_capacity_dose1": 0,
+                "available_capacity_dose2": 0
+            }
+        ]
+    },
+    {
+        "center_id": 697288,
+        "name": "Aliganj UCHC 18 To 44",
+        "address": "AliganjLucknow Uttar Pradesh",
+        "state_name": "Uttar Pradesh",
+        "district_name": "Lucknow",
+        "block_name": "LUCKNOW URBAN",
+        "pincode": 226024,
+        "lat": 26,
+        "long": 80,
+        "from": "10:00:00",
+        "to": "16:00:00",
+        "fee_type": "Free",
+        "sessions": [
+            {
+                "session_id": "358b7b69-8fc9-4daf-8932-b670a3ba8edf",
+                "date": "24-05-2021",
+                "available_capacity": 1,
+                "min_age_limit": 18,
+                "vaccine": "COVISHIELD",
+                "slots": [
+                    "10:00AM-11:00AM",
+                    "11:00AM-12:00PM",
+                    "12:00PM-01:00PM",
+                    "01:00PM-04:00PM"
+                ],
+                "available_capacity_dose1": 0,
+                "available_capacity_dose2": 0
+            },
+            {
+                "session_id": "53064a60-f3ed-40ce-8113-5b07059f7fb4",
+                "date": "25-05-2021",
+                "available_capacity": 1,
+                "min_age_limit": 18,
+                "vaccine": "COVISHIELD",
+                "slots": [
+                    "10:00AM-11:00AM",
+                    "11:00AM-12:00PM",
+                    "12:00PM-01:00PM",
+                    "01:00PM-04:00PM"
+                ],
+                "available_capacity_dose1": 0,
+                "available_capacity_dose2": 0
+            },
+            {
+                "session_id": "e05b6602-93e6-452f-9a50-9cb857541ac6",
+                "date": "26-05-2021",
+                "available_capacity": 1,
+                "min_age_limit": 18,
+                "vaccine": "COVISHIELD",
+                "slots": [
+                    "10:00AM-11:00AM",
+                    "11:00AM-12:00PM",
+                    "12:00PM-01:00PM",
+                    "01:00PM-04:00PM"
+                ],
+                "available_capacity_dose1": 0,
+                "available_capacity_dose2": 0
+            },
+            {
+                "session_id": "840f4f2a-694b-4f51-909a-a80da0111c0a",
+                "date": "27-05-2021",
+                "available_capacity": 1,
+                "min_age_limit": 18,
+                "vaccine": "COVISHIELD",
+                "slots": [
+                    "10:00AM-11:00AM",
+                    "11:00AM-12:00PM",
+                    "12:00PM-01:00PM",
+                    "01:00PM-04:00PM"
+                ],
+                "available_capacity_dose1": 0,
+                "available_capacity_dose2": 0
+            },
+            {
+                "session_id": "750b0954-0939-48db-a62e-a5e078d48804",
+                "date": "28-05-2021",
+                "available_capacity": 1,
+                "min_age_limit": 18,
+                "vaccine": "COVISHIELD",
+                "slots": [
+                    "10:00AM-11:00AM",
+                    "11:00AM-12:00PM",
+                    "12:00PM-01:00PM",
+                    "01:00PM-04:00PM"
+                ],
+                "available_capacity_dose1": 0,
+                "available_capacity_dose2": 0
+            },
+            {
+                "session_id": "4b7ec972-b747-479d-8b92-7f78cfeac8a7",
+                "date": "29-05-2021",
+                "available_capacity": 1,
+                "min_age_limit": 18,
+                "vaccine": "COVISHIELD",
+                "slots": [
+                    "10:00AM-11:00AM",
+                    "11:00AM-12:00PM",
+                    "12:00PM-01:00PM",
+                    "01:00PM-04:00PM"
+                ],
+                "available_capacity_dose1": 0,
+                "available_capacity_dose2": 0
+            }
+        ]
+    },
+    {
+        "center_id": 567122,
+        "name": "Regency Hospital",
+        "address": "Plot No.356 Khurramnagar Ring Road Lucknow",
+        "state_name": "Uttar Pradesh",
+        "district_name": "Lucknow",
+        "block_name": "Kakori",
+        "pincode": 226022,
+        "lat": 26,
+        "long": 80,
+        "from": "14:00:00",
+        "to": "18:00:00",
+        "fee_type": "Paid",
+        "sessions": [
+            {
+                "session_id": "e7ab42e9-1b50-48db-bfd8-833ec913f86d",
+                "date": "24-05-2021",
+                "available_capacity": 1,
+                "min_age_limit": 18,
+                "vaccine": "COVAXIN",
+                "slots": [
+                    "02:00PM-03:00PM",
+                    "03:00PM-04:00PM",
+                    "04:00PM-05:00PM",
+                    "05:00PM-06:00PM"
+                ],
+                "available_capacity_dose1": 0,
+                "available_capacity_dose2": 0
+            }
+        ],
+        "vaccine_fees": [
+            {
+                "vaccine": "COVAXIN",
+                "fee": "1500"
+            }
+        ]
+    }
+    
+]
