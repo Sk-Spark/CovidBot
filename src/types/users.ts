@@ -1,6 +1,4 @@
 import { TableUtilities } from 'azure-storage';
-const entType = TableUtilities.entityGenerator.EntityProperty;
-// entGen.EntityProperty
 export class UserType {
     constructor(
         public id:number,

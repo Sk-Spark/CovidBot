@@ -1,7 +1,6 @@
 {
   "cowinHomeUrl":"https://www.cowin.gov.in/home",
   "cowinRegisterUrl":"https://selfregistration.cowin.gov.in/dashboard",
-  "skChatId":1627929329,
   "calendarByPinUrl" : "https://cdn-api.co-vin.in/api/v2/appointment/sessions/public/calendarByPin?pincode=PIN&date=DATE",
   "validAges":[18, 45],
   "secret":"sha256Hasher"

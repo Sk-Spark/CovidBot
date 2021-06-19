@@ -35,7 +35,7 @@ let t:any,t_dis:any;
 let runDist:any;
 
 let usersCache:any={};
-const skChatId = config.skChatId;
+const skChatId = process.env.skChatId ? parseInt(process.env.skChatId) : undefined ;
 const botToken = process.env.BOT_TOKEN || undefined;
 
 // For Azure App Server as Live pod line & to server public folder
@@ -212,7 +212,7 @@ bot.onText(/\/start$/,(msg,match)=>{
 // Help Command
 bot.onText(/\/help/, (msg, match) => {
     const chatId = msg.chat.id;        
-    const resp = chatId === config.skChatId ? helpText+skResp : helpText;
+    const resp = chatId === skChatId ? helpText+skResp : helpText;
     // console.log('resp',resp);
     bot.sendMessage(chatId, resp,{parse_mode : "HTML"});
 });
@@ -277,13 +277,13 @@ bot.onText(/\/listpin$/,async(msg,match)=>{
 // Matches "/dist"
 bot.onText(/\/dist$/, runDist = async(msg:TelegramBot.Message, match:RegExpExecArray | null) => {    
   
-    if(msg && (msg.chat.id !== skChatId) )  return;
+    if( msg && (msg.chat.id !== skChatId) )  return;
 
     let resp = []; // the captured "whatever"
     let msgs=[];
     resp= await getSessionsByDisCode();
     
-    if(isEmpty(resp)){
+    if(skChatId && isEmpty(resp)){
         bot.sendMessage(skChatId,'No Session Found By Dist !!!');
     }
     else{
@@ -299,7 +299,7 @@ bot.onText(/\/dist$/, runDist = async(msg:TelegramBot.Message, match:RegExpExecA
         }
 
         msgs.forEach(msg=>{
-            bot.sendMessage(skChatId,msg,{parse_mode:"HTML"});
+            skChatId && bot.sendMessage(skChatId,msg,{parse_mode:"HTML"});
         })
     }
     
@@ -433,7 +433,7 @@ bot.onText(/\/getUsers$/,async(msg)=>{
     const chatId = msg.chat.id;
     let usr:UserType|undefined;
     await DbHelper.fetchUser(chatId).then(data=>{usr=data.user});
-    if(chatId !== config.skChatId)
+    if(chatId !== skChatId)
         return;
     
     bot.sendMessage(chatId,JSON.stringify(usr));
@@ -556,7 +556,7 @@ const getSessionsByDisCode = async ()=>{
     let msg:string[] = [];
     centers.forEach(c=>{
         if( c ){
-            let sk = find(Users,{id:config.skChatId});
+            let sk = find(Users,{id:skChatId});
             let m = formateDistMsg(c,sk?sk.age:[18,45]);
             if(!isEmpty(m))
                 msg.push(m);
@@ -576,7 +576,7 @@ const getSessionsByDisCode = async ()=>{
 }
 
 const main = async ()=>{    
-    botToken && sendNotofication(botToken,skChatId,'Server Started !!!');
+    botToken && skChatId && sendNotofication(botToken,skChatId,'Server Started !!!');
     // pinSearchHandler();
     // runDist();
 }
