@@ -3,7 +3,8 @@ import { isEmpty, find } from 'lodash';
 import TelegramBot from 'node-telegram-bot-api';
 import {Server} from './server';
 
-import { getHash, addAge, addPin, formateDistMsg, getDate, getUser, isValidPinCode, removeAge, removePin, sendNotofication, isValidCmd, getCmd, isValidArgvCmd, logCmd} from './helper/helper';
+import { getHash, addAge, addPin, formateDistMsg, getDate, isValidPinCode, removeAge, removePin, 
+    sendNotofication, isValidCmd, getCmd, isValidArgvCmd, logCmd, delay} from './helper/helper';
 import { getSessionsByPinCode } from './actions';
 import config from './config.json';
 import  users  from './data/users.json';
@@ -111,16 +112,16 @@ const skResp = `
 const pinSearchHandler = async (msg?:TelegramBot.Message, match?:RegExpExecArray | null)=>{
     
     let weeks = 1;   
+    let msgs:string[]=[];
+
     if(isEmpty(msg)){ // activated by time intervals
         let users:UserType[]=[];
         await DbHelper.fetchAllUser().then(data=>{users=data.users});
         users.forEach(async(user)=>{
             const chatId = user.id;            
             let resp= await getSessionsByPinCode(user,weeks);            
-            if(!isEmpty(resp))
-                resp += cowinLink;
-
-            let hs = getHash(resp);
+            
+            let hs = getHash(resp.toString());
             let sendMsg = false;
 
             console.log('Users cache:',usersCache);
@@ -146,7 +147,31 @@ const pinSearchHandler = async (msg?:TelegramBot.Message, match?:RegExpExecArray
             if(sendMsg === true){                
                 if(!isEmpty(resp)){
                     usersCache[chatId.toString()] = hs;
-                    bot.sendMessage(chatId, resp, {parse_mode:"HTML"}) ;
+                    let msg='';
+                    for(let i=0;i<resp.length; ++i){
+                        if(Buffer.from(msg+resp[i]).length < MAX_LEN){
+                            msg += resp[i];
+                        }
+                        else{
+                            msgs.push(msg);
+                            msg = '';
+                        }            
+                    }
+                    !isEmpty(msg) && msgs.push(msg);
+
+                    // console.log(`msgs`,msgs[msgs.length-1]);
+                    if(!isEmpty(msgs))
+                        msgs[msgs.length-1]+= cowinLink;
+
+                    msgs.forEach(msg=>{
+                        bot.sendMessage(chatId, msg, {parse_mode:"HTML"})
+                        .then(data=>{
+                            console.log(`Vaccine updates send to ${chatId} successfully. `);
+                        })
+                        .catch(ex =>{
+                            console.log(`Error while sending msg to ${chatId} \n ${ex}`);
+                        });
+                    });
                 }
             }
     
@@ -159,21 +184,41 @@ const pinSearchHandler = async (msg?:TelegramBot.Message, match?:RegExpExecArray
         let chatId = msg?.chat.id;
         let user:UserType|undefined;
         await DbHelper.fetchUser(chatId!).then(data=>{user=data.user});
-        if(user && !isEmpty(user.pincodes) && !isEmpty(user.age) && chatId && !isEmpty(user)){
+        if(user && chatId && !isEmpty(user.pincodes) && !isEmpty(user.age) && !isEmpty(user)){
             console.log('User:',user?.id,' init a pin search.');
             let resp= await getSessionsByPinCode(user,weeks);
             // console.log(`resp: ${resp}`);
-
-            if(!isEmpty(resp))
-                resp += cowinLink;
-            // console.log('resp:',resp);
-        
+            
             if(isEmpty(resp))
                 bot.sendMessage(chatId, 'No Session Found !!!');
             else{
-                let hs = getHash(resp);
+                let hs = getHash(resp.toString());
                 usersCache[chatId.toString()] = hs;
-                bot.sendMessage(chatId, resp, {parse_mode:"HTML"});
+                let msg='';
+                for(let i=0;i<resp.length; ++i){
+                    if(Buffer.from(msg+resp[i]).length < MAX_LEN){
+                        msg += resp[i];
+                    }
+                    else{
+                        msgs.push(msg);
+                        msg = '';
+                    }            
+                }
+                !isEmpty(msg) && msgs.push(msg);
+
+                if(!isEmpty(msgs))
+                    msgs[msgs.length-1]+= cowinLink;
+
+                msgs.forEach(msg=>{
+                    chatId && bot.sendMessage(chatId, msg, {parse_mode:"HTML"})
+                    .then(data=>{
+                        console.log(`Vaccine updates send to ${chatId} successfully. `);
+                    })
+                    .catch(ex =>{
+                        console.log(`Error while sending msg to ${chatId} \n ${ex}`);
+                    });
+                    
+                })
             }
         }
         else{
@@ -299,7 +344,8 @@ bot.onText(/\/dist$/, runDist = async(msg:TelegramBot.Message, match:RegExpExecA
         }
 
         msgs.forEach(msg=>{
-            skChatId && bot.sendMessage(skChatId,msg,{parse_mode:"HTML"});
+            if(skChatId && !isEmpty(msg))
+                bot.sendMessage(skChatId,msg,{parse_mode:"HTML"});
         })
     }
     
@@ -431,8 +477,8 @@ bot.onText(/\/delpin (.+)/,async(msg,match)=>{
 //get Users data
 bot.onText(/\/getUsers$/,async(msg)=>{
     const chatId = msg.chat.id;
-    let usr:UserType|undefined;
-    await DbHelper.fetchUser(chatId).then(data=>{usr=data.user});
+    let usr:UserType[]|undefined;
+    await DbHelper.fetchAllUser().then(data=>{usr=data.users});
     if(chatId !== skChatId)
         return;
     
@@ -577,7 +623,7 @@ const getSessionsByDisCode = async ()=>{
 
 const main = async ()=>{    
     botToken && skChatId && sendNotofication(botToken,skChatId,'Server Started !!!');
-    // pinSearchHandler();
+    pinSearchHandler();
     // runDist();
 }
 

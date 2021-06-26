@@ -1,13 +1,13 @@
-import { formatePinMsg, getDate} from "./helper/helper";
+import { formateDistMsg, getDate} from "./helper/helper";
 import { UserType } from "./types/users";
 import config from './config.json';
-import { replace, map } from 'lodash';
+import { replace, isEmpty } from 'lodash';
 import fetch from "node-fetch";
 
 export const getSessionsByPinCode = async (user:UserType, weeks:number)=>{
-    let pinData:any[] = [];
+    let centers:any[] = [];
     const promises: Array<Promise<any>> = [];
-    let resp='';
+    let msgs:string[]=[];
 
     for(let i=0;i<weeks;++i){
         
@@ -36,13 +36,22 @@ export const getSessionsByPinCode = async (user:UserType, weeks:number)=>{
             console.log(`[Done] Fetch Sessions for: -> url: ${res.url}`);    
             return res.json();
         }));
-        map(data, (d:any)=> {pinData = pinData.concat(d.centers); });
-        resp = formatePinMsg(pinData,user.age);
+        data.forEach((d:any)=>{
+            if(!isEmpty(d.centers))
+                centers = centers.concat(d.centers);           
+        });
+        centers.forEach(c=>{
+            if( c ){
+                let m = formateDistMsg(c,user.age);
+                if(!isEmpty(m))
+                    msgs.push(m);
+            }
+        });
     }
     
     const onError = (error: any) => {
         console.log(`error:`,error);
-        resp = '';
+        msgs=[]
     }
 
     const onCatch = (ex: any) => {
@@ -61,5 +70,5 @@ export const getSessionsByPinCode = async (user:UserType, weeks:number)=>{
     // let resp=formatePinMsg(pinData);
     // console.log('pinData:',pinData);
     
-    return resp;
+    return msgs;
 }

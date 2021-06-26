@@ -10,6 +10,8 @@ import * as DbHelper from './db.helper';
 
 const dataFile = './src/data/users.json';
 
+export const delay = (ms:number) => new Promise(resolve => setTimeout(resolve, ms));
+
 export const formatePinMsg = (centers:any[], ages:number[])=>{
     let resp = '';
     centers.forEach(c=>{
@@ -35,7 +37,7 @@ export const formateDistMsg = (c:any, ages:number[])=>{
         \n  Address: ${c.address}\
         \n  PinCode: ${c.pincode}\
         \n ---------------------------------`;
-    c.sessions.forEach( (s:any) =>{
+    c.sessions && c.sessions.forEach( (s:any) =>{
         if( s && parseInt(s.available_capacity) > 0 && ages.includes(s.min_age_limit) ){
             isVaccAvail = true;
             msg += `\n<b><u>💉Vaccine Slot</u></b> \
