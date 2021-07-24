@@ -43,6 +43,7 @@ export const mapToDbUser = (user:UserType) : UserDbType=>{
         id: entGen.Int32(user.id),
         pincode: entGen.String(JSON.stringify(user.pincodes)),
         age: entGen.String(JSON.stringify(user.age)),
+        dose: entGen.String(JSON.stringify(user.dose)),
         notify: entGen.Boolean(user.notify)   
     }
 }
@@ -52,6 +53,7 @@ export const mapToUser = (entry:any):UserType=>{
     entry.id._,
     JSON.parse(entry.pincode._ || '[]'),
     JSON.parse(entry.age._ || '[]'),
+    JSON.parse(entry.dose && entry.dose._ || '[]'),
     entry.notify._
   );
   return user;

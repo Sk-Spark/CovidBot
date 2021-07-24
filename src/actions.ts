@@ -36,13 +36,14 @@ export const getSessionsByPinCode = async (user:UserType, weeks:number)=>{
             console.log(`[Done] Fetch Sessions for: -> url: ${res.url}`);    
             return res.json();
         }));
+        console.log('data:',data);
         data.forEach((d:any)=>{
             if(!isEmpty(d.centers))
                 centers = centers.concat(d.centers);           
         });
         centers.forEach(c=>{
             if( c ){
-                let m = formateDistMsg(c,user.age);
+                let m = formateDistMsg(c,user);
                 if(!isEmpty(m))
                     msgs.push(m);
             }
