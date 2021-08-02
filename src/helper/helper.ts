@@ -28,7 +28,10 @@ const getVaccineFee = (center:any,vaccine:string) : string | undefined=>{
 }
 
 const hasRequiredDose = (session:any,dose:number[]) : boolean=>{
-    return (dose.includes(1) && session.available_capacity_dose1>0) || (dose.includes(2) && session.available_capacity_dose2>0);
+    if(isEmpty(dose))
+        return true;
+    else
+        return (dose.includes(1) && session.available_capacity_dose1>0) || (dose.includes(2) && session.available_capacity_dose2>0);
 }
 
 export const formateDistMsg = (c:any, user:UserType)=>{

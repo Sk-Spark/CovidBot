@@ -64,10 +64,12 @@ else{
 }
 
 const cowinLink =  `<a href="${config.cowinHomeUrl}"> Book Your Slot @COWIN </a>`;
+
 //Conatins all valid commands
-const cmdList = '/start /help /search /listpin /live /echo /listage /getUsers /listall /addpin /addage /delpin /delage';
+const cmdList = '/start /help /search /listpin /live /echo /listage /getUsers /listall /addpin /addage /delpin /delage /adddose /listdose /deldose';
+
 //Contains onlt valid argumnet commands
-const argvCmdList = '/addpin /addage /delpin /delage';
+const argvCmdList = '/addpin /addage /delpin /delage /adddose /deldose';
 const helpText = `<b>Command HELP !</b>\n 
     <b>Check by PinCode</b>
         /search
@@ -184,6 +186,7 @@ const pinSearchHandler = async (msg?:TelegramBot.Message, match?:RegExpExecArray
         let chatId = msg?.chat.id;
         let user:UserType|undefined;
         await DbHelper.fetchUser(chatId!).then(data=>{user=data.user});
+        console.log("User:",user);
         if(user && chatId && !isEmpty(user.pincodes) && !isEmpty(user.age) && !isEmpty(user)){
             console.log('User:',user?.id,' init a pin search.');
             let resp= await getSessionsByPinCode(user,weeks);
