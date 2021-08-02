@@ -1,19 +1,18 @@
-import { isEmpty , find, findIndex ,remove} from 'lodash';
+import { isEmpty , find, findIndex ,remove, isNumber} from 'lodash';
 import fetch from 'node-fetch';
 import  users  from '../data/users.json';
 import { UserType } from '../types/users';
-import fs from 'fs';
 import crypto from 'crypto';
 import config from '../config.json';
-import TelegramBot from 'node-telegram-bot-api';
+import TelegramBot, { User } from 'node-telegram-bot-api';
 import * as DbHelper from './db.helper';
 
-const dataFile = './src/data/users.json';
+export const delay = (ms:number) => new Promise(resolve => setTimeout(resolve, ms));
 
-export const formatePinMsg = (centers:any[], ages:number[])=>{
+export const formatePinMsg = (centers:any[], user:UserType)=>{
     let resp = '';
     centers.forEach(c=>{
-        resp += formateDistMsg(c,ages);
+        resp += formateDistMsg(c,user);
     });
     return resp;
 }
@@ -28,15 +27,23 @@ const getVaccineFee = (center:any,vaccine:string) : string | undefined=>{
     return vaccFees;
 }
 
-export const formateDistMsg = (c:any, ages:number[])=>{
+const hasRequiredDose = (session:any,dose:number[]) : boolean=>{
+    if(isEmpty(dose))
+        return true;
+    else
+        return (dose.includes(1) && session.available_capacity_dose1>0) || (dose.includes(2) && session.available_capacity_dose2>0);
+}
+
+export const formateDistMsg = (c:any, user:UserType)=>{
     let isVaccAvail = false;
+    let {age,dose} = {...user};
     const feeType = c.fee_type;
     let msg=`🏥 <b><u>Name: ${c.name} </u></b>\
         \n  Address: ${c.address}\
         \n  PinCode: ${c.pincode}\
         \n ---------------------------------`;
-    c.sessions.forEach( (s:any) =>{
-        if( s && parseInt(s.available_capacity) > 0 && ages.includes(s.min_age_limit) ){
+    c.sessions && c.sessions.forEach( (s:any) =>{
+        if( s && parseInt(s.available_capacity) > 0 && age.includes(s.min_age_limit) && hasRequiredDose(s,dose) ){
             isVaccAvail = true;
             msg += `\n<b><u>💉Vaccine Slot</u></b> \
                     \n    <b>Date: ${s.date}  </b> \
@@ -74,6 +81,20 @@ export const isValidPinCode = (pin:string|number)=>{
     return regx.test(pin.toString());
 }
 
+export const isValidDose = (dose:string)=>{
+    // console.log('Dose:',dose);
+    try{
+        const doseNum = parseInt(dose);
+        if(config.valideDoses.includes(doseNum))
+            return true;
+        else 
+            return false;
+    }
+    catch(err){
+        return false;
+    }
+}
+
 export const getUser = (userId:number) =>{
     const Users = (users as UserType[]);
     return find(Users,{id:userId});
@@ -89,7 +110,7 @@ export const addPin = async (userId:number,pin:number)=>{
     // let user = find(Users,{id:userId});
     if(isEmpty(user)){
         // let resp = addUser(userId,pin);  
-        await DbHelper.addUser(new UserType(userId,[pin],[18,45],true))
+        await DbHelper.addUser(new UserType(userId,[pin],[18,45]))
         .then((d:any)=>{
             rsp={error:d.error,msg:d.msg};
         })
@@ -127,7 +148,7 @@ export const addAge = async (userId:number,age:number)=>{
     // let user = find(Users,{id:userId});
     if(isEmpty(user)){
         // let resp = addUser(userId,pin);  
-        await DbHelper.addUser(new UserType(userId,[],[age],true))
+        await DbHelper.addUser(new UserType(userId,[],[age]))
         .then((d:any)=>{
             rsp={error:d.error,msg:d.msg};
         })
@@ -155,6 +176,40 @@ export const addAge = async (userId:number,age:number)=>{
     return rsp;   
 }
 
+export const addDose = async (userId:number,dose:number)=>{
+    let user:UserType|undefined;
+    await DbHelper.fetchUser(userId).then(data=>{user=data.user});
+    let rsp = {error:false,msg:''};
+    
+    if(isEmpty(user)){
+        await DbHelper.addUser({id:userId,pincodes:[],age:[],dose:[dose],notify:true})
+        .then((d:any)=>{
+            rsp={error:d.error,msg:d.msg};
+        })
+        .catch(err=>{
+            rsp={error:err.error,msg:err.msg};
+        })
+    } 
+    else if(user) {
+        if(!isEmpty(user.dose) && user.dose.includes(dose)){
+            console.log('Does All ready exists.');
+            rsp.error=true;
+            rsp.msg='Does All ready exists !!!';
+        }
+        else{
+            user.dose.push(dose);
+            console.log(`Does Update for user ${user.id} init...`);
+            DbHelper.updateUser(user)
+            .then(data=>{ 
+                console.log(`Does Added to user:`,data);
+                rsp = {error:data.error,msg:data.msg};
+            });
+        }
+    }
+    
+    return rsp;   
+}
+
 export const removeAge = (user:UserType,age:number)=>{
     let rsp = {error:false,msg:''};
     user.age = user.age.filter(a=> a!=age );
@@ -162,6 +217,18 @@ export const removeAge = (user:UserType,age:number)=>{
     DbHelper.updateUser(user)
     .then(data=>{ 
         console.log(`Age Deleted for user:`,data);
+        rsp = {error:data.error,msg:data.msg};
+    });    
+    return rsp;   
+}
+
+export const removeDose = (user:UserType,dose:number)=>{
+    let rsp = {error:false,msg:''};
+    user.dose = user.dose.filter(d=> d!=dose );
+    console.log(`Del Dose for user ${user.id} init...`);
+    DbHelper.updateUser(user)
+    .then(data=>{ 
+        console.log(`Dose Deleted for user:`,data);
         rsp = {error:data.error,msg:data.msg};
     });    
     return rsp;   

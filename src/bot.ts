@@ -3,7 +3,8 @@ import { isEmpty, find } from 'lodash';
 import TelegramBot from 'node-telegram-bot-api';
 import {Server} from './server';
 
-import { getHash, addAge, addPin, formateDistMsg, getDate, getUser, isValidPinCode, removeAge, removePin, sendNotofication, isValidCmd, getCmd, isValidArgvCmd, logCmd} from './helper/helper';
+import { getHash, addAge, addPin, formateDistMsg, getDate, isValidPinCode, removeAge, removePin, 
+    sendNotofication, isValidCmd, getCmd, isValidArgvCmd, logCmd, delay, isValidDose, addDose, removeDose} from './helper/helper';
 import { getSessionsByPinCode } from './actions';
 import config from './config.json';
 import  users  from './data/users.json';
@@ -35,7 +36,7 @@ let t:any,t_dis:any;
 let runDist:any;
 
 let usersCache:any={};
-const skChatId = config.skChatId;
+const skChatId = process.env.skChatId ? parseInt(process.env.skChatId) : undefined ;
 const botToken = process.env.BOT_TOKEN || undefined;
 
 // For Azure App Server as Live pod line & to server public folder
@@ -63,10 +64,12 @@ else{
 }
 
 const cowinLink =  `<a href="${config.cowinHomeUrl}"> Book Your Slot @COWIN </a>`;
+
 //Conatins all valid commands
-const cmdList = '/start /help /search /listpin /live /echo /listage /getUsers /listall /addpin /addage /delpin /delage';
+const cmdList = '/start /help /search /listpin /live /echo /listage /getUsers /listall /addpin /addage /delpin /delage /adddose /listdose /deldose';
+
 //Contains onlt valid argumnet commands
-const argvCmdList = '/addpin /addage /delpin /delage';
+const argvCmdList = '/addpin /addage /delpin /delage /adddose /deldose';
 const helpText = `<b>Command HELP !</b>\n 
     <b>Check by PinCode</b>
         /search
@@ -111,16 +114,16 @@ const skResp = `
 const pinSearchHandler = async (msg?:TelegramBot.Message, match?:RegExpExecArray | null)=>{
     
     let weeks = 1;   
+    let msgs:string[]=[];
+
     if(isEmpty(msg)){ // activated by time intervals
         let users:UserType[]=[];
         await DbHelper.fetchAllUser().then(data=>{users=data.users});
         users.forEach(async(user)=>{
             const chatId = user.id;            
             let resp= await getSessionsByPinCode(user,weeks);            
-            if(!isEmpty(resp))
-                resp += cowinLink;
-
-            let hs = getHash(resp);
+            
+            let hs = getHash(resp.toString());
             let sendMsg = false;
 
             console.log('Users cache:',usersCache);
@@ -146,7 +149,31 @@ const pinSearchHandler = async (msg?:TelegramBot.Message, match?:RegExpExecArray
             if(sendMsg === true){                
                 if(!isEmpty(resp)){
                     usersCache[chatId.toString()] = hs;
-                    bot.sendMessage(chatId, resp, {parse_mode:"HTML"}) ;
+                    let msg='';
+                    for(let i=0;i<resp.length; ++i){
+                        if(Buffer.from(msg+resp[i]).length < MAX_LEN){
+                            msg += resp[i];
+                        }
+                        else{
+                            msgs.push(msg);
+                            msg = '';
+                        }            
+                    }
+                    !isEmpty(msg) && msgs.push(msg);
+
+                    // console.log(`msgs`,msgs[msgs.length-1]);
+                    if(!isEmpty(msgs))
+                        msgs[msgs.length-1]+= cowinLink;
+
+                    msgs.forEach(msg=>{
+                        bot.sendMessage(chatId, msg, {parse_mode:"HTML"})
+                        .then(data=>{
+                            console.log(`Vaccine updates send to ${chatId} successfully. `);
+                        })
+                        .catch(ex =>{
+                            console.log(`Error while sending msg to ${chatId} \n ${ex}`);
+                        });
+                    });
                 }
             }
     
@@ -159,21 +186,42 @@ const pinSearchHandler = async (msg?:TelegramBot.Message, match?:RegExpExecArray
         let chatId = msg?.chat.id;
         let user:UserType|undefined;
         await DbHelper.fetchUser(chatId!).then(data=>{user=data.user});
-        if(user && !isEmpty(user.pincodes) && !isEmpty(user.age) && chatId && !isEmpty(user)){
+        console.log("User:",user);
+        if(user && chatId && !isEmpty(user.pincodes) && !isEmpty(user.age) && !isEmpty(user)){
             console.log('User:',user?.id,' init a pin search.');
             let resp= await getSessionsByPinCode(user,weeks);
             // console.log(`resp: ${resp}`);
-
-            if(!isEmpty(resp))
-                resp += cowinLink;
-            // console.log('resp:',resp);
-        
+            
             if(isEmpty(resp))
                 bot.sendMessage(chatId, 'No Session Found !!!');
             else{
-                let hs = getHash(resp);
+                let hs = getHash(resp.toString());
                 usersCache[chatId.toString()] = hs;
-                bot.sendMessage(chatId, resp, {parse_mode:"HTML"});
+                let msg='';
+                for(let i=0;i<resp.length; ++i){
+                    if(Buffer.from(msg+resp[i]).length < MAX_LEN){
+                        msg += resp[i];
+                    }
+                    else{
+                        msgs.push(msg);
+                        msg = '';
+                    }            
+                }
+                !isEmpty(msg) && msgs.push(msg);
+
+                if(!isEmpty(msgs))
+                    msgs[msgs.length-1]+= cowinLink;
+
+                msgs.forEach(msg=>{
+                    chatId && bot.sendMessage(chatId, msg, {parse_mode:"HTML"})
+                    .then(data=>{
+                        console.log(`Vaccine updates send to ${chatId} successfully. `);
+                    })
+                    .catch(ex =>{
+                        console.log(`Error while sending msg to ${chatId} \n ${ex}`);
+                    });
+                    
+                })
             }
         }
         else{
@@ -212,7 +260,7 @@ bot.onText(/\/start$/,(msg,match)=>{
 // Help Command
 bot.onText(/\/help/, (msg, match) => {
     const chatId = msg.chat.id;        
-    const resp = chatId === config.skChatId ? helpText+skResp : helpText;
+    const resp = chatId === skChatId ? helpText+skResp : helpText;
     // console.log('resp',resp);
     bot.sendMessage(chatId, resp,{parse_mode : "HTML"});
 });
@@ -250,7 +298,88 @@ bot.onText(/\/addpin (.+)/,(msg,match)=>{
             }
         });
     }
+});
 
+// add dose to user
+bot.onText(/\/adddose (.+)/,(msg,match)=>{
+    const chatId = msg.chat.id;
+    const dose = match?match[1]:'';
+
+    console.log('Add Dose: ',dose);
+    console.log('Valid Dose: ',isValidDose(dose));
+
+    if(!isValidDose(dose)){
+        bot.sendMessage(chatId,`<b style="color:red">Please enter a valid Dose Number !!!</b> \
+        \n Valid Dose Numbers : ${config.valideDoses.join(', ')}`,{parse_mode:"HTML"});
+    }
+    else{
+        addDose(chatId, parseInt(dose))
+        .then((data)=>{
+            if(data.error){
+                bot.sendMessage(chatId,data.msg);
+                console.log(data);
+            }
+            else{
+                bot.sendMessage(chatId,'Dose added to list.\n Try /listdose');
+                console.log(data);
+            }
+        });
+    }
+});
+
+
+//del dose from user
+bot.onText(/\/deldose (.+)/,async(msg,match)=>{
+    const chatId = msg.chat.id;
+    console.log('Match:',match);
+    let resp = 'Default';
+
+    if(match){
+        let dose = parseInt(match[1]);
+        if(dose){
+            let user:UserType|undefined;
+            await DbHelper.fetchUser(chatId).then(data=>{user=data.user});
+
+            if(user){
+                if(user && !user.dose.includes(dose)){
+                    resp = `Dose "${dose}" NOT in list.`;
+                }
+                else if(user){
+                    let rst = removeDose(user,dose);
+                    resp = (await rst).error?'Error while adding Dose.':'Updated Dose list\n Try /listDose ';
+                }
+            }
+            else{
+                resp = 'No Dose Found.'
+            }
+        }
+        else{
+            resp = `Valid Dose are ${config.valideDoses}.`;
+        }
+    } 
+
+    bot.sendMessage(chatId,resp);
+});
+
+
+//list Dose 
+bot.onText(/\/listdose$/,async(msg,match)=>{
+    const chatId = msg.chat.id;
+    let usr:UserType|undefined;
+    await DbHelper.fetchUser(chatId).then(data=>{usr=data.user});
+
+    if(!isEmpty(usr)){
+        let resp='';
+        resp += usr?.dose.join(', ');
+        if(isEmpty(resp))
+            resp = 'No Dose Found.'
+        else
+            resp = 'Added Doses:\n'+resp;
+        bot.sendMessage(chatId,resp);
+    }
+    else{
+        bot.sendMessage(chatId,'No Dose Found.');
+    }
 });
 
 //list Pin Code
@@ -277,16 +406,16 @@ bot.onText(/\/listpin$/,async(msg,match)=>{
 // Matches "/dist"
 bot.onText(/\/dist$/, runDist = async(msg:TelegramBot.Message, match:RegExpExecArray | null) => {    
   
-    if(msg && (msg.chat.id !== skChatId) )  return;
+    if( msg && (msg.chat.id !== skChatId) )  return;
 
-    let resp = []; // the captured "whatever"
+    // let resp: string[] | undefined = []; // the captured "whatever"
     let msgs=[];
-    resp= await getSessionsByDisCode();
+    let resp= await getSessionsByDisCode();
     
-    if(isEmpty(resp)){
+    if(skChatId && isEmpty(resp) ){
         bot.sendMessage(skChatId,'No Session Found By Dist !!!');
     }
-    else{
+    else if(resp){
         let msg='';
         for(let i=0;i<resp.length; ++i){
             if(Buffer.from(msg+resp[i]).length < MAX_LEN){
@@ -299,7 +428,8 @@ bot.onText(/\/dist$/, runDist = async(msg:TelegramBot.Message, match:RegExpExecA
         }
 
         msgs.forEach(msg=>{
-            bot.sendMessage(skChatId,msg,{parse_mode:"HTML"});
+            if(skChatId && !isEmpty(msg))
+                bot.sendMessage(skChatId,msg,{parse_mode:"HTML"});
         })
     }
     
@@ -431,9 +561,9 @@ bot.onText(/\/delpin (.+)/,async(msg,match)=>{
 //get Users data
 bot.onText(/\/getUsers$/,async(msg)=>{
     const chatId = msg.chat.id;
-    let usr:UserType|undefined;
-    await DbHelper.fetchUser(chatId).then(data=>{usr=data.user});
-    if(chatId !== config.skChatId)
+    let usr:UserType[]|undefined;
+    await DbHelper.fetchAllUser().then(data=>{usr=data.users});
+    if(chatId !== skChatId)
         return;
     
     bot.sendMessage(chatId,JSON.stringify(usr));
@@ -445,20 +575,26 @@ bot.onText(/\/listall/,async (msg)=>{
     let usr:UserType|undefined;
     await DbHelper.fetchUser(chatId).then(data=>{usr=data.user});
 
-    if(!isEmpty(usr)){
-        let pin='', age='', resp='';
-        usr?.pincodes.forEach(p=>{pin+=`${p}\n`});
-        usr?.age.forEach(a=>{age+=`${a}\n`});
+    if(!isEmpty(usr) && usr){
+        let pin='', age='', dose='', resp='';
+        pin = usr.pincodes.join(', ');
+        age = usr.age.join(', ');
+        dose = usr.dose.join(', ');
 
         if(isEmpty(pin))
             resp += 'No Pin Codes Found.\n';
         else
-            resp += `Added Pin Codes:\n${pin}\n`;            
+            resp += `Added Pin Codes:\n${pin}\n\n`;            
 
         if(isEmpty(age))
             resp += 'No Age Found.\n';
         else
-            resp += `Added Age :\n${age}`;
+            resp += `Added Age :\n${age}\n\n`;
+
+        if(isEmpty(dose))
+            resp += 'No Dose Found.\n\n';
+        else
+            resp += `Added Dose :\n${dose}`;
         bot.sendMessage(chatId,resp);
     }
     else{
@@ -517,6 +653,10 @@ const getSessionsByDisCode = async ()=>{
     // find by distric code
     // const url = 'https://cdn-api.co-vin.in/api/v2/appointment/sessions/public/calendarByDistrict?district_id=670&date=11-05-2021';
     const baseUrl = 'https://cdn-api.co-vin.in/api/v2/appointment/sessions/public/calendarByDistrict?';
+    if(!skChatId)
+        return;
+    let user:UserType|undefined;
+    await DbHelper.fetchUser(skChatId).then(data=>{user=data.user});
     
     let date = getDate();
     let days = 14;
@@ -556,8 +696,7 @@ const getSessionsByDisCode = async ()=>{
     let msg:string[] = [];
     centers.forEach(c=>{
         if( c ){
-            let sk = find(Users,{id:config.skChatId});
-            let m = formateDistMsg(c,sk?sk.age:[18,45]);
+            let m = user ? formateDistMsg(c,user):'';
             if(!isEmpty(m))
                 msg.push(m);
         }
@@ -576,8 +715,8 @@ const getSessionsByDisCode = async ()=>{
 }
 
 const main = async ()=>{    
-    botToken && sendNotofication(botToken,skChatId,'Server Started !!!');
-    // pinSearchHandler();
+    botToken && skChatId && sendNotofication(botToken,skChatId,'Server Started !!!');
+    pinSearchHandler();
     // runDist();
 }
 

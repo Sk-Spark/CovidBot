@@ -43,6 +43,7 @@ export const mapToDbUser = (user:UserType) : UserDbType=>{
         id: entGen.Int32(user.id),
         pincode: entGen.String(JSON.stringify(user.pincodes)),
         age: entGen.String(JSON.stringify(user.age)),
+        dose: entGen.String(JSON.stringify(user.dose)),
         notify: entGen.Boolean(user.notify)   
     }
 }
@@ -52,6 +53,7 @@ export const mapToUser = (entry:any):UserType=>{
     entry.id._,
     JSON.parse(entry.pincode._ || '[]'),
     JSON.parse(entry.age._ || '[]'),
+    JSON.parse(entry.dose && entry.dose._ || '[]'),
     entry.notify._
   );
   return user;
@@ -207,82 +209,3 @@ export const updateUser = async (user:UserType) : Promise<{error:boolean,msg:str
     });
   });
 }
-
-
-// const data = [
-//   { id: 1627929329, pincodes: [226024,226022], age: [18,45], notify: true },
-//   { id: 889246625, pincodes: [226020], age: [45], notify: true },
-// ];
-
-// const PartitionKey = 'skbot_dev';
-// const TableName = 'SkBotDev' ;
-// const tableSvc = azure.createTableService(StorageAccount, StorageKey);
-// const entGen = azure.TableUtilities.entityGenerator;
-
-// const mapToDbUser = (user)=>{
-//     return {
-//         PartitionKey: entGen.String(PartitionKey),
-//         RowKey: entGen.String(user.id.toString()),
-//         id:user.id,
-//         pincode:JSON.stringify(user.pincodes),
-//         age:JSON.stringify(user.age),
-//         notify:user.notify   
-//     }
-// }
-
-// const addUsersToDB = (user)=>{
-//     tableSvc.insertEntity(TableName,user, (error, result, responce)=>{
-//         if(error)
-//             console.log("Error:",error);
-//         if(result)
-//             console.log("Rest:",result);
-//         if(responce)
-//             console.log("Responce:", responce);
-//     });
-// }
-
-// data.forEach(d=>{
-//     addUsersToDB(mapToDbUser(d));
-// })
-
-// const td = {
-//     PartitionKey: entGen.String(PartitionKey),
-//     RowKey: entGen.String(data[0].id.toString()),
-//     id:data[0].id,
-//     pincode:JSON.stringify(data[0].pincodes),
-//     age:JSON.stringify(data[0].age),
-//     notify:data[0].notify   
-//     };
-
-// console.log('td:',td);
-
-// tableSvc.retrieveEntity(TableName,PartitionKey,data[0].id.toString(), (error, result, responce)=>{
-//     if(error)
-//         console.log("Error:",error);
-//     if(result){
-//         console.log("Rest:",result);
-//         // const data = JSON.parse(result);
-//         // console.log('Data:',data);
-//     }
-//     if(responce)
-//         console.log("Responce:", responce);
-// });
-
-// tableSvc.insertEntity(TableName,td, (error, result, responce)=>{
-//     if(error)
-//         console.log("Error:",error);
-//     if(result)
-//         console.log("Rest:",result);
-//     if(responce)
-//         console.log("Responce:", responce);
-// });
-
-// tableSvc.replaceEntity(TableName,td, (error, result, responce)=>{
-//     if(error)
-//         console.log("Error:",error);
-//     if(result)
-//         console.log("Rest:",result);
-//     if(responce)
-//         console.log("Responce:", responce);
-// });
-
