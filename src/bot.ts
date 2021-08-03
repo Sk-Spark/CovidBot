@@ -125,6 +125,7 @@ const pinSearchHandler = async (msg?:TelegramBot.Message, match?:RegExpExecArray
             
             let hs = getHash(resp.toString());
             let sendMsg = false;
+            msgs=[];
 
             console.log('Users cache:',usersCache);
             // Checking if msg is same as last time
